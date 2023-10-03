@@ -1,24 +1,18 @@
-
+from funcs  import *
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
+import pandas as pd
 
-service = Service()
-options = webdriver.ChromeOptions()
-options.add_argument("--headless")
-driver = webdriver.Chrome(service=service, options=options)
-wait = WebDriverWait(driver, 10)
+# df = pd.DataFrame(columns=['No.', 'need_number', 'description', 'organization', 'province', 'need_type', 'category', 'goods_group', 'service_group', 'published_date' , 'deadline'])
 
-# url0 = 'https://eproc.setadiran.ir/eproc/entry.do' 
-url = 'https://eproc.setadiran.ir/eproc/needs.do'
+df = pd.read_excel(r"setadiran-scraper\data\test.xlsx", index_col=0)
 
-driver.get(url)
+fetch_data(df)
+# print(df.duplicated().any())
+# df = df.drop(df.index[-1])
+# print(df)
 
-xpath = '//*[@id="aList"]/tbody'
-
-# Wait until the element is visible
-element = wait.until(EC.visibility_of_element_located((By.XPATH, xpath)))
-
-elem = element.find_elements(By.TAG_NAME, 'tr')
+# print(df['need_number'])
