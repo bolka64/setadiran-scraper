@@ -18,58 +18,61 @@ def fetch_data(df):
     wait = WebDriverWait(driver, 10)
 
     # url0 = 'https://eproc.setadiran.ir/eproc/entry.do' 
-    url = 'https://eproc.setadiran.ir/eproc/needs.do'
+    # url = 'https://eproc.setadiran.ir/eproc/needs.do'
+    url = 'https://eproc.setadiran.ir/eproc/needs.do?pager=true&d-146909-p=1'
 
-    driver.get(url)
+    for i in range(1,21):
+        url = f'https://eproc.setadiran.ir/eproc/needs.do?pager=true&d-146909-p={i}'
+        driver.get(url)
 
-    xpath = '//*[@id="aList"]/tbody'
+        # Wait until the element is visible
+        element = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="aList"]/tbody')))
+        # find tr tags
+        tr_tags = element.find_elements(By.TAG_NAME, 'tr')    
+    
+        # a counter to find duplicated items
+        duplicated_counter = 0
 
-    # Wait until the element is visible
-    element = wait.until(EC.visibility_of_element_located((By.XPATH, xpath)))
+        for tr_tag in tr_tags:
+            td = tr_tag.find_elements(By.TAG_NAME, 'td')
+            print('inner loop')
 
-    tr_tags = element.find_elements(By.TAG_NAME, 'tr')
+            
+            no = td[0].text
+            need_number = td[1].text # need_number
+            description = td[2].find_element(By.TAG_NAME, 'span').get_attribute('title') # description
+            organization = td[3].find_element(By.TAG_NAME, 'span').get_attribute('title') # organization
+            province = td[4].find_element(By.TAG_NAME, 'span').get_attribute('title') # province
+            need_type = td[5].find_element(By.TAG_NAME, 'span').get_attribute('title') # need_type
+            category = td[6].text # category
+            goods_group = td[7].find_element(By.TAG_NAME, 'span').get_attribute('title') # goods_group
+            service_group = td[8].find_element(By.TAG_NAME, 'span').get_attribute('title') # service_group
+            published_date = td[9].find_element(By.TAG_NAME, 'span').text # published_date
+            deadline = td[10].find_element(By.TAG_NAME, 'span').get_attribute('title') # deadline
 
-    duplicated_counter = 0
+            row = {
+                'No.' : no,
+                'need_number': need_number,
+                'description': description,
+                'organization' : organization,
+                'province' : province,
+                'need_type' : need_type,
+                'category' : category,
+                'goods_group' : goods_group,
+                'service_group' : service_group,
+                'published_date' : published_date,
+                'deadline' : deadline
+            }
+            df = df._append(row, ignore_index=True)
+            df = df.fillna('')
 
-    for tr_tag in tr_tags:
-        td = tr_tag.find_elements(By.TAG_NAME, 'td')
 
+            if df['need_number'].duplicated().any():
+                df = df.drop(df.tail(1).index)
+                print('DUPLICATED ROW')
+                duplicated_counter += 1
+                if duplicated_counter == 3:
+                    print('BREAK')
+                    return 0
         
-        no = td[0].text
-        need_number = td[1].text # need_number
-        description = td[2].find_element(By.TAG_NAME, 'span').get_attribute('title') # description
-        organization = td[3].find_element(By.TAG_NAME, 'span').get_attribute('title') # organization
-        province = td[4].find_element(By.TAG_NAME, 'span').get_attribute('title') # province
-        need_type = td[5].find_element(By.TAG_NAME, 'span').get_attribute('title') # need_type
-        category = td[6].text # category
-        goods_group = td[7].find_element(By.TAG_NAME, 'span').get_attribute('title') # goods_group
-        service_group = td[8].find_element(By.TAG_NAME, 'span').get_attribute('title') # service_group
-        published_date = td[9].find_element(By.TAG_NAME, 'span').text # published_date
-        deadline = td[10].find_element(By.TAG_NAME, 'span').get_attribute('title') # deadline
-
-        row = {
-            'No.' : no,
-            'need_number': need_number,
-            'description': description,
-            'organization' : organization,
-            'province' : province,
-            'need_type' : need_type,
-            'category' : category,
-            'goods_group' : goods_group,
-            'service_group' : service_group,
-            'published_date' : published_date,
-            'deadline' : deadline
-        }
-        df = df._append(row, ignore_index=True)
-        df = df.fillna('')
-
-
-        if df['need_number'].duplicated().any():
-            df = df.drop(df.tail(1).index)
-            # print('DUPLICATED ROW')
-            duplicated_counter += 1
-            if duplicated_counter == 3:
-                # print('BREAK')
-                break
-        
-    df.to_excel(r"setadiran-scraper\data\test.xlsx")
+        df.to_excel(r"setadiran-scraper\data\test.xlsx")

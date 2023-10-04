@@ -1,4 +1,5 @@
 from funcs  import *
+import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,8 +12,4 @@ import pandas as pd
 df = pd.read_excel(r"setadiran-scraper\data\test.xlsx", index_col=0)
 
 fetch_data(df)
-# print(df.duplicated().any())
-# df = df.drop(df.index[-1])
-# print(df)
 
-# print(df['need_number'])
